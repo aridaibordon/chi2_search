@@ -1,16 +1,20 @@
 import numpy as np
 
-from chi2_search.model import get_chi2
+from chi2_search.model import get_chi2, get_chi2_scale_factor
 
 
-def get_best_fit(x_sample: list, y_sample: list, synthetic_data: list[tuple]) -> tuple:
-    min_chi2 = np.inf
-    for x, y, params in synthetic_data:
-        chi2 = get_chi2(x, y, x_sample, y_sample)
+def get_best_fit(sample_data: list[tuple], synthetic_data: list[tuple]) -> tuple:
+    output = [(None, None) for _ in range(len(sample_data))]
 
-        if chi2 < min_chi2:
-            min_chi2 = chi2
+    for ind, (x_sample, y_sample) in enumerate(sample_data):
+        min_chi2 = np.inf
+        for x, y, params in synthetic_data:
+            chi2 = get_chi2(x, y, x_sample, y_sample)
 
-            best_fit, best_params = (x, y), params
+            if chi2 < min_chi2:
+                min_chi2 = chi2
 
-    return best_fit, best_params
+                a = get_chi2_scale_factor(x, y, x_sample, y_sample)
+                output[ind] = (x, a * y), params
+
+    return output
